@@ -26,3 +26,9 @@
 *.exe
 *.out
 *.app
+
+# API keys
+.*key
+
+# SSH keys
+id_rsa
