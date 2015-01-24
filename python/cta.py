@@ -5,7 +5,7 @@
 import sys
 import requests
 from bs4 import BeautifulSoup
-
+from xmltodict import parse
 
 
 # get API key from file
@@ -39,16 +39,30 @@ if apicmd not in apicmdOK:
 
 print URL + apicmd + APIKEY + apiargv
 
-sys.exit()
+# sys.exit()
 r = requests.get(URL + apicmd + APIKEY + apiargv)
 
 
 
-
-print r
+print "r == " + str(r)
 print r.text
 #soup = BeautifulSoup(r.text)
 #print soup
+out = parse(r.text)
+print "out ::"
+print out
+print "___"
+#print out['bustime-response']['']
+#print out['bustime-response'][u'ptr'].keys()
+#print "tmpstmp: " + out['bustime-response']['prd']['tmstmp']
+for x in ["tmstmp","typ","stpnm","stpid","vid","dstp","rt","rtdir","des","prdtm"]:
+ print x + ": " + out['bustime-response']['prd'][x] 
+ #out['bustime-response']['prd']:
+ #print key
+ #print x
+print "___"
 
+#print out['bustime-response'].keys()
+#print out['bustime-response']['tm']
 
 #print APIKEY
