@@ -44,13 +44,13 @@ r = requests.get(URL + apicmd + APIKEY + apiargv)
 
 
 
-print "r == " + str(r)
+#print "r == " + str(r)
 print r.text
 #soup = BeautifulSoup(r.text)
 #print soup
 out = parse(r.text)
-print "out ::"
-print out
+#print "out ::"
+#print out
 print "___"
 #print out['bustime-response']['']
 #print out['bustime-response'][u'ptr'].keys()
