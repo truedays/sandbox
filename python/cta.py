@@ -43,7 +43,6 @@ print URL + apicmd + APIKEY + apiargv
 r = requests.get(URL + apicmd + APIKEY + apiargv)
 
 
-
 #print "r == " + str(r)
 print r.text
 #soup = BeautifulSoup(r.text)
@@ -54,6 +53,13 @@ out = parse(r.text)
 print "___"
 #print out['bustime-response']['']
 #print out['bustime-response'][u'ptr'].keys()
+if "error" in out['bustime-response']:
+ print "SHIT" 
+ print out['bustime-response']['error']['msg']
+ print "SHIT"
+ sys.exit(1)
+
+
 #print "tmpstmp: " + out['bustime-response']['prd']['tmstmp']
 for x in ["tmstmp","typ","stpnm","stpid","vid","dstp","rt","rtdir","des","prdtm"]:
  print x + ": " + out['bustime-response']['prd'][x] 
