@@ -44,7 +44,7 @@ r = requests.get(URL + apicmd + APIKEY + apiargv)
 
 
 #print "r == " + str(r)
-#print r.text
+print r.text
 #soup = BeautifulSoup(r.text)
 #print soup
 out = parse(r.text)
@@ -84,3 +84,9 @@ if "tmstmp" in out['bustime-response']['prd']:
 #print out['bustime-response']['tm']
 
 #print APIKEY
+
+#print out['bustime-response']['prd']
+print out['bustime-response']['prd']['vid']
+
+## TODO:  Figure out why ^ doesn't work when two or more buses are reported
+##      /cta.py getpredictions "&stpid=1936&top=5"
