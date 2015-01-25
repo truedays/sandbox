@@ -6,7 +6,7 @@ import sys
 import requests
 from bs4 import BeautifulSoup
 from xmltodict import parse
-
+import datetime
 
 # get API key from file
 f = open('./.cta-api.key', 'r')
@@ -44,7 +44,7 @@ r = requests.get(URL + apicmd + APIKEY + apiargv)
 
 
 #print "r == " + str(r)
-print r.text
+#print r.text
 #soup = BeautifulSoup(r.text)
 #print soup
 out = parse(r.text)
@@ -54,20 +54,32 @@ print "___"
 #print out['bustime-response']['']
 #print out['bustime-response'][u'ptr'].keys()
 if "error" in out['bustime-response']:
- print "SHIT" 
- print out['bustime-response']['error']['msg']
- print "SHIT"
+ print "+" + str(out) + "+"
+ print "ERROR: " + out['bustime-response']['error']['msg']
  sys.exit(1)
 
-
-#print "tmpstmp: " + out['bustime-response']['prd']['tmstmp']
-for x in ["tmstmp","typ","stpnm","stpid","vid","dstp","rt","rtdir","des","prdtm"]:
- print x + ": " + out['bustime-response']['prd'][x] 
- #out['bustime-response']['prd']:
- #print key
- #print x
+# Lame safety check:
+if "prdtm" in out['bustime-response']['prd']:
+ #print "tmpstmp: " + out['bustime-response']['prd']['tmstmp']
+ for x in ["tmstmp","typ","stpnm","stpid","vid","dstp","rt","rtdir","des","prdtm"]:
+  print x + ": " + out['bustime-response']['prd'][x] 
+  #out['bustime-response']['prd']:
+  #print key
+  #print x
 print "___"
 
+if "tmstmp" in out['bustime-response']['prd']:
+ # print out['bustime-response']['prd']['tmstmp'][9:11]
+ # print out['bustime-response']['prd']['tmstmp'][12:14]
+ # print out['bustime-response']['prd']['prdtm'][9:11] 
+ # print out['bustime-response']['prd']['prdtm'][12:14]
+ hourNow=int(out['bustime-response']['prd']['tmstmp'][9:11])
+ minNow=int(out['bustime-response']['prd']['tmstmp'][12:14])
+ hourPred=int(out['bustime-response']['prd']['prdtm'][9:11])
+ minPred=int(out['bustime-response']['prd']['prdtm'][12:14])
+ timeRemain = ((hourPred*60)+minPred) - ((hourNow*60)+minNow)
+ print "Minutes remaining: " + str(timeRemain)
+# timeRemain = ((out['bustime-response']['prd']['prdtm'][9:11]*60) + out['bustime-response']['prd']['prdtm'][12:14]) - ((out['bustime-response']['prd']['tmstmp'][9:11]*60) + out['bustime-response']['prd']['tmstmp'][12:14])
 #print out['bustime-response'].keys()
 #print out['bustime-response']['tm']
 
