@@ -16,17 +16,17 @@ URL="http://www.ctabustracker.com/bustime/api/v1/"
 
 apicmdOK = ["gettime", "getvehicles", "getroutes", "getdirections", "getstops", "getpatterns", "getpredictions", "getservicebulletins"]
 
-
+# if two arguments aren't given fall back to just gettime
 if len(sys.argv) <2:
-# apicmd = "getpredictions"
-# apiargv = "&rt=20&stpid=456"
- apicmd = "gettime"
- apiargv = ""
+ apicmd =  "getpredictions"
+ apiargv = "&rt=78&stpid=11321&top=1"
+ #apicmd = "gettime"
+ #apiargv = ""
 else:
  apicmd = sys.argv[1]
- print "apicmd: " + apicmd
+ #print "apicmd: " + apicmd
  apiargv = sys.argv[2]
- print "apiargv: " + apiargv
+ #print "apiargv: " + apiargv
 
 if apicmd not in apicmdOK:
  print "you provided an invalid API command!"
@@ -36,7 +36,7 @@ if apicmd not in apicmdOK:
  sys.exit(1)
 
 
-print URL + apicmd + APIKEY + apiargv
+print "URL: " + URL + apicmd + APIKEY + apiargv
 
 # sys.exit()
 r = requests.get(URL + apicmd + APIKEY + apiargv)
@@ -48,7 +48,7 @@ r = requests.get(URL + apicmd + APIKEY + apiargv)
 #print soup
 out = parse(r.text)
 #print "out ::"
-print out
+#print out
 print "___"
 #print out['bustime-response']['']
 #print out['bustime-response'][u'ptr'].keys()
@@ -65,19 +65,33 @@ if "prdtm" in out['bustime-response']['prd']:
   #out['bustime-response']['prd']:
   #print key
   #print x
-print "___"
 
-if "tmstmp" in out['bustime-response']['prd']:
- # print out['bustime-response']['prd']['tmstmp'][9:11]
- # print out['bustime-response']['prd']['tmstmp'][12:14]
- # print out['bustime-response']['prd']['prdtm'][9:11] 
- # print out['bustime-response']['prd']['prdtm'][12:14]
- hourNow=int(out['bustime-response']['prd']['tmstmp'][9:11])
- minNow=int(out['bustime-response']['prd']['tmstmp'][12:14])
- hourPred=int(out['bustime-response']['prd']['prdtm'][9:11])
- minPred=int(out['bustime-response']['prd']['prdtm'][12:14])
- timeRemain = ((hourPred*60)+minPred) - ((hourNow*60)+minNow)
- print "Minutes remaining: " + str(timeRemain)
+# true == multiple predictions returned
+if isinstance(out['bustime-response']['prd'], list):
+ for x in range(0,len(out['bustime-response']['prd'])):
+  if out['bustime-response']['prd'][x]:
+   hourNow=int(out['bustime-response']['prd'][x]['tmstmp'][9:11])
+   minNow=int(out['bustime-response']['prd'][x]['tmstmp'][12:14])
+   hourPred=int(out['bustime-response']['prd'][x]['prdtm'][9:11])
+   minPred=int(out['bustime-response']['prd'][x]['prdtm'][12:14])
+   timeRemain = ((hourPred*60)+minPred) - ((hourNow*60)+minNow)
+   for response in ["tmstmp","typ","stpnm","stpid","vid","dstp","rt","rtdir","des","prdtm"]:
+    print response + "[" + str(x) + "]" + ": " + out['bustime-response']['prd'][x][response]
+   print "Minutes remaining: " + str(timeRemain)
+   print "___"
+else:
+ if "tmstmp" in out['bustime-response']['prd']:
+  # print out['bustime-response']['prd']['tmstmp'][9:11]
+  # print out['bustime-response']['prd']['tmstmp'][12:14]
+  # print out['bustime-response']['prd']['prdtm'][9:11] 
+  # print out['bustime-response']['prd']['prdtm'][12:14]
+  hourNow=int(out['bustime-response']['prd']['tmstmp'][9:11])
+  minNow=int(out['bustime-response']['prd']['tmstmp'][12:14])
+  hourPred=int(out['bustime-response']['prd']['prdtm'][9:11])
+  minPred=int(out['bustime-response']['prd']['prdtm'][12:14])
+  timeRemain = ((hourPred*60)+minPred) - ((hourNow*60)+minNow)
+  print "Minutes remaining: " + str(timeRemain)
+  print "___"
 # timeRemain = ((out['bustime-response']['prd']['prdtm'][9:11]*60) + out['bustime-response']['prd']['prdtm'][12:14]) - ((out['bustime-response']['prd']['tmstmp'][9:11]*60) + out['bustime-response']['prd']['tmstmp'][12:14])
 #print out['bustime-response'].keys()
 #print out['bustime-response']['tm']
