@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# ray@truedays.org
 # CTA API CLI YAH
 
 import sys
@@ -49,7 +48,7 @@ r = requests.get(URL + apicmd + APIKEY + apiargv)
 #print soup
 out = parse(r.text)
 #print "out ::"
-#print out
+print out
 print "___"
 #print out['bustime-response']['']
 #print out['bustime-response'][u'ptr'].keys()
