@@ -88,4 +88,9 @@ for stop in stops:
  fullurl = URL + apicmd + APIKEY + stop
  getPred(fullurl)
 
-
+print "</pre>"
+print """
+<FORM>
+<INPUT TYPE="button" onClick="history.go(0)" VALUE="Refresh">
+</FORM>
+"""
