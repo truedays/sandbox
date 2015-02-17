@@ -2,68 +2,41 @@
 # -*- coding: UTF-8 -*-
 # CTA API CLI YAH
 
-import sys
 import requests
 #from bs4 import BeautifulSoup
 from xmltodict import parse
-import datetime
+from time import gmtime, strftime
 # enable debugging
 import cgitb
 cgitb.enable()
-
-#print "Content-Type: text/plain;charset=utf-8"
-print "<html><title>CTA for Ray</title><body>"
-print
 
 # get API key from file
 f = open('./.cta-api.key', 'r')
 APIKEY = "?key=" + f.read(25)
 f.close()
 
-URL="http://www.ctabustracker.com/bustime/api/v1/"
+URL = "http://www.ctabustracker.com/bustime/api/v1/"
+apicmd = "getpredictions"
 
-apicmdOK = ["gettime", "getvehicles", "getroutes", "getdirections", "getstops", "getpatterns", "getpredictions", "getservicebulletins"]
-
-# if two arguments aren't given fall back to just gettime
-if len(sys.argv) <2:
- apicmd =  "getpredictions"
- apiargv = "&rt=78&stpid=11321"
- #apicmd = "gettime"
- #apiargv = ""
-else:
- apicmd = sys.argv[1]
- #print "apicmd: " + apicmd
- apiargv = sys.argv[2]
- #print "apiargv: " + apiargv
-
-if apicmd not in apicmdOK:
- print "you provided an invalid API command!"
- print "\nValid commands:"
- for x in apicmdOK:
-  print "\t" + x
- sys.exit(1)
+#showResponse = ["stpnm","stpid","vid","rt","rtdir","prdtm"]
+showResponse = ["tmstmp","typ","stpnm","stpid","vid","dstp","rt","rtdir","des","prdtm"]
+counter = 0
 
 def getPred(localurl):
- r = requests.get(localurl)
- out = parse(r.text)
  if "error" in out['bustime-response']:
-  #print "+" + str(out) + "+"
-  #print "localurl: " + str(localurl)
-  print "xXxXxXx\nERROR: " + out['bustime-response']['error']['msg']
-  print "xXxXxXx\n"
-  #sys.exit(1)
+  errorMsg = out['bustime-response']['error']['msg']
   return
- print "___"
+
  # Lame safety check:
  if "prdtm" in out['bustime-response']['prd']:
   #print "tmpstmp: " + out['bustime-response']['prd']['tmstmp']
-  for x in ["tmstmp","typ","stpnm","stpid","vid","dstp","rt","rtdir","des","prdtm"]:
+  for x in showResponse:
    print x + ": " + out['bustime-response']['prd'][x] 
    #out['bustime-response']['prd']:
    #print key
    #print x
- 
- # true == multiple predictions returned
+
+   # true == multiple predictions returned
  if isinstance(out['bustime-response']['prd'], list):
   for x in range(0,len(out['bustime-response']['prd'])):
    if out['bustime-response']['prd'][x]:
@@ -72,7 +45,7 @@ def getPred(localurl):
     hourPred=int(out['bustime-response']['prd'][x]['prdtm'][9:11])
     minPred=int(out['bustime-response']['prd'][x]['prdtm'][12:14])
     timeRemain = ((hourPred*60)+minPred) - ((hourNow*60)+minNow)
-    for response in ["tmstmp","typ","stpnm","stpid","vid","dstp","rt","rtdir","des","prdtm"]:
+    for response in showResponse:
      print response + "[" + str(x) + "]" + ": " + out['bustime-response']['prd'][x][response]
     print "Minutes remaining: " + str(timeRemain)
     print "___"
@@ -89,25 +62,51 @@ def getPred(localurl):
    timeRemain = ((hourPred*60)+minPred) - ((hourNow*60)+minNow)
    print "Minutes remaining: " + str(timeRemain)
    print "___"
- # timeRemain = ((out['bustime-response']['prd']['prdtm'][9:11]*60) + out['bustime-response']['prd']['prdtm'][12:14]) - ((out['bustime-response']['prd']['tmstmp'][9:11]*60) + out['bustime-response']['prd']['tmstmp'][12:14])
-#print out['bustime-response'].keys()
-#print out['bustime-response']['tm']
 
-fullurl = URL + apicmd + APIKEY + apiargv
-getPred(fullurl)
-
-#print APIKEY
-# if two arguments aren't given fall back to just gettime
-if len(sys.argv) <2:
- apicmd =  "getpredictions"
- apiargv = "&rt=56&stpid=5586&"
- #apicmd = "gettime"
- #apiargv = ""
+# Determine direction based on time of day
+if int(strftime("%H", gmtime())) > 18 or int(strftime("%H", gmtime())) < 6 :
+ # Heading home
+ heading = "home"
+ stops = ["&rt=78&stpid=11401", "&rt=56&stpid=14101"]
 else:
- apicmd = sys.argv[1]
- #print "apicmd: " + apicmd
- apiargv = sys.argv[2]
- #print "apiargv: " + apiargv
+ # heading to work
+ heading = "work"
+ stops = ["&rt=78&stpid=11321", "&rt=56&stpid=5586"]
 
-fullurl = URL + apicmd + APIKEY + apiargv
-getPred(fullurl)
+print """Content-type: text/html
+
+"""
+print "<html><title> Bus times - Heading to " + heading + "</title>"
+print """<head>
+<link rel="stylesheet" type="text/css" href="mystyle.css">
+</head><body>
+<center>
+"""
+print "Heading: " + heading + "	time: " + strftime("%h:%m", gmtime())
+exit()
+
+for stop in stops:
+ fullurl = URL + apicmd + APIKEY + stop
+ getPred(fullurl)
+
+print "</pre>"
+print """
+<FORM>
+<INPUT TYPE="button" onClick="history.go(0)" VALUE="Refresh">
+</FORM>
+"""
+
+if nothing > 1:
+ r = requests.get(localurl)
+ out = parse(r.text)
+ print '<table style="width:relative">'
+ print "<tr>"
+ print "<th>Route "
+ route = "no route"
+ if isinstance(out['bustime-response']['prd'], list):
+  route = str(out['bustime-response']['prd'][0]['rt'])
+ else:
+  route = str(out['bustime-response']['prd']['rt'])
+ print route
+ print "</th>"
+ print "</tr>"

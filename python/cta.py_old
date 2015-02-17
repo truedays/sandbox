@@ -1,0 +1,92 @@
+#!/usr/bin/python
+# ray@truedays.org
+# CTA API CLI YAH
+
+import sys
+import requests
+from bs4 import BeautifulSoup
+from xmltodict import parse
+import datetime
+
+# get API key from file
+f = open('./.cta-api.key', 'r')
+APIKEY = "?key=" + f.read(25)
+f.close()
+
+URL="http://www.ctabustracker.com/bustime/api/v1/"
+
+apicmdOK = ["gettime", "getvehicles", "getroutes", "getdirections", "getstops", "getpatterns", "getpredictions", "getservicebulletins"]
+
+
+if len(sys.argv) <2:
+# apicmd = "getpredictions"
+# apiargv = "&rt=20&stpid=456"
+ apicmd = "gettime"
+ apiargv = ""
+else:
+ apicmd = sys.argv[1]
+ print "apicmd: " + apicmd
+ apiargv = sys.argv[2]
+ print "apiargv: " + apiargv
+
+if apicmd not in apicmdOK:
+ print "you provided an invalid API command!"
+ print "\nValid commands:"
+ for x in apicmdOK:
+  print "\t" + x
+ sys.exit(1)
+
+
+print URL + apicmd + APIKEY + apiargv
+
+# sys.exit()
+r = requests.get(URL + apicmd + APIKEY + apiargv)
+
+
+#print "r == " + str(r)
+print r.text
+#soup = BeautifulSoup(r.text)
+#print soup
+out = parse(r.text)
+#print "out ::"
+#print out
+print "___"
+#print out['bustime-response']['']
+#print out['bustime-response'][u'ptr'].keys()
+if "error" in out['bustime-response']:
+ print "+" + str(out) + "+"
+ print "ERROR: " + out['bustime-response']['error']['msg']
+ sys.exit(1)
+
+# Lame safety check:
+if "prdtm" in out['bustime-response']['prd']:
+ #print "tmpstmp: " + out['bustime-response']['prd']['tmstmp']
+ for x in ["tmstmp","typ","stpnm","stpid","vid","dstp","rt","rtdir","des","prdtm"]:
+  print x + ": " + out['bustime-response']['prd'][x] 
+  #out['bustime-response']['prd']:
+  #print key
+  #print x
+print "___"
+
+if "tmstmp" in out['bustime-response']['prd']:
+ # print out['bustime-response']['prd']['tmstmp'][9:11]
+ # print out['bustime-response']['prd']['tmstmp'][12:14]
+ # print out['bustime-response']['prd']['prdtm'][9:11] 
+ # print out['bustime-response']['prd']['prdtm'][12:14]
+ hourNow=int(out['bustime-response']['prd']['tmstmp'][9:11])
+ minNow=int(out['bustime-response']['prd']['tmstmp'][12:14])
+ hourPred=int(out['bustime-response']['prd']['prdtm'][9:11])
+ minPred=int(out['bustime-response']['prd']['prdtm'][12:14])
+ timeRemain = ((hourPred*60)+minPred) - ((hourNow*60)+minNow)
+ print "Minutes remaining: " + str(timeRemain)
+# timeRemain = ((out['bustime-response']['prd']['prdtm'][9:11]*60) + out['bustime-response']['prd']['prdtm'][12:14]) - ((out['bustime-response']['prd']['tmstmp'][9:11]*60) + out['bustime-response']['prd']['tmstmp'][12:14])
+#print out['bustime-response'].keys()
+#print out['bustime-response']['tm']
+
+#print APIKEY
+
+#print out['bustime-response']['prd']
+print len(out['bustime-response']['prd']['vid'])
+
+## TODO:  Figure out why ^ doesn't work when two or more buses are reported
+##      /cta.py getpredictions "&stpid=1936&top=5"
